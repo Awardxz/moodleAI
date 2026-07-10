@@ -20,6 +20,13 @@
 
 ---
 
+## Demo / video showcase
+
+A quick walkthrough of moodleAI:
+
+https://github.com/user-attachments/assets/b9282f49-01c1-49f9-b0cf-b0c0bc9ce8a5
+
+
 ## Free tier: Groq (recommended)
 
 If you want to try moodleAI **without paid API bills**, use **[Groq](https://console.groq.com/)**:
