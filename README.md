@@ -148,7 +148,7 @@ npm run build
 | [OpenAI](https://platform.openai.com/api-keys) | Yes | `gpt-4o` / `gpt-4o-mini` |
 | [Claude (Anthropic)](https://console.anthropic.com/settings/keys) | Yes | Anthropic Messages API |
 | [Grok (xAI)](https://console.x.ai/) | Yes | OpenAI-compatible API |
-| [DeepSeek](https://platform.deepseek.com/api_keys) | No | Text only in this extension |
+| [DeepSeek](https://platform.deepseek.com/api_keys) | Yes | Vision and Text |
 | [Google Gemini](https://aistudio.google.com/apikey) | Yes | AI Studio API keys |
 
 Keys are stored only in **local extension storage** on your machine. Requests go **directly** from the extension to the provider — there is no moodleAI backend holding your key.
