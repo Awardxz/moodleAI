@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moodle AI Testing Environment</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg: #f8f9fa;
+            --surface: #ffffff;
+            --border: #dee2e6;
+            --text-dark: #212529;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--text-dark);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Layout */
+        .sidebar {
+            width: 350px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Sidebar Panels */
+        .panel {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .panel-title {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        /* Forms & Inputs */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        textarea {
+            resize: vertical;
+            height: 80px;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #4338ca;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 0.5rem;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        /* Moodle Mock Styling */
+        .moodle-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .que {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .qtext {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+        .ablock {
+            margin-left: 1rem;
+            color: #495057;
+            line-height: 1.8;
+        }
+        .img-fluid {
+            max-width: 100%;
+            height: auto;
+            margin-top: 15px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        select.select {
+            width: auto;
+            padding: 4px;
+            margin: 0 5px;
+        }
+        .badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e0e7ff;
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Filter */
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 1rem;
+        }
+        .filter-btn {
+            background: #e9ecef;
+            color: #495057;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Navigation */
+        .nav-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+        .nav-btn {
+            background: var(--surface);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 8px 16px;
+            width: auto;
+        }
+        .nav-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: white;
+        }
+        .nav-btn:disabled {
+            border-color: #ccc;
+            color: #999;
+            cursor: not-allowed;
+            background: #f8f9fa;
+        }
+        .q-counter {
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .instructions {
+            background-color: #e0f2fe;
+            border: 1px solid #bae6fd;
+            padding: 1rem;
+            border-radius: 8px;
+            color: #0369a1;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Control Panel -->
+    <div class="sidebar">
+        <!-- Add Question Form -->
+        <div class="panel" style="flex: 1; overflow-y: auto;">
+            <h3 class="panel-title">➕ Add New Question</h3>
+            
+            <div class="form-group">
+                <label>Category</label>
+                <select id="qCategory">
+                    <option value="Java">Java / SHK2</option>
+                    <option value="Data">Databases</option>
+                    <option value="Algo">Algorithms</option>
+                    <option value="Networks">Computer Networks</option>
+                    <option value="Unified">Unified / General</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Question Type</label>
+                <select id="qType">
+                    <option value="mcq">Multiple Choice</option>
+                    <option value="dropdown">Dropdown (Fill in blank)</option>
+                    <option value="open">Open Ended / True-False</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Question Text (Use [BLANK] for dropdown location)</label>
+                <textarea id="qText" placeholder="E.g., What is the default size of an int in Java?"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Image URL (Optional)</label>
+                <input type="text" id="qImage" placeholder="https://example.com/image.png">
+            </div>
+
+            <div class="form-group" id="optionsGroup">
+                <label>Options (One per line, e.g., 'a) 4 bytes')</label>
+                <textarea id="qOptions" placeholder="a) 4 bytes&#10;b) 2 bytes&#10;c) 8 bytes&#10;d) 1 byte"></textarea>
+            </div>
+
+            <button onclick="addQuestion()">Add Question</button>
+            <button class="btn-secondary" onclick="resetQuestions()">Reset to Defaults</button>
+        </div>
+
+        <div class="panel instructions" style="margin: 1rem; border: none;">
+            <strong>Setup:</strong> Ensure "Allow access to file URLs" is ON in <code>chrome://extensions/</code>.<br>
+            <strong>Hotkeys:</strong> <code>"</code> toggles AI answer visibility.
+        </div>
+    </div>
+
+    <!-- Main Content / Moodle Preview -->
+    <div class="main-content">
+        <div class="moodle-container">
+            
+            <!-- Filters -->
+            <div class="filter-group" id="filters">
+                <button class="filter-btn active" onclick="setFilter('All', this)">All Categories</button>
+                <button class="filter-btn" onclick="setFilter('Java', this)">Java</button>
+                <button class="filter-btn" onclick="setFilter('Data', this)">Databases</button>
+                <button class="filter-btn" onclick="setFilter('Algo', this)">Algorithms</button>
+                <button class="filter-btn" onclick="setFilter('Networks', this)">Networks</button>
+                <button class="filter-btn" onclick="setFilter('Unified', this)">Unified</button>
+            </div>
+
+            <div id="questions-container">
+                <!-- Questions injected here by JS -->
+            </div>
+            
+            <div class="nav-group" id="navGroup">
+                <button class="nav-btn" id="prevBtn" onclick="prevQuestion()" disabled>&#8592; Previous</button>
+                <div class="q-counter" id="qCounter">Question 1 of 1</div>
+                <button class="nav-btn" id="nextBtn" onclick="nextQuestion()">Next &#8594;</button>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // Default Pre-populated Questions Bank
+        const defaultQuestions = [
+            // DATABASES
+            {
+                id: 1,
+                category: "Data",
+                type: "mcq",
+                text: "Which of the following SQL statements is used to permanently remove a table from the relational database?",
+                options: ["a) DELETE TABLE", "b) DROP TABLE", "c) TRUNCATE TABLE", "d) REMOVE TABLE"],
+                image: null
+            },
+            {
+                id: 2,
+                category: "Data",
+                type: "dropdown",
+                text: "The command to add new rows is [BLANK] into a table.",
+                options: ["UPDATE", "INSERT", "ADD", "REPLACE"],
+                image: null
+            },
+            {
+                id: 3,
+                category: "Data",
+                type: "open",
+                text: "True or False: A primary key can contain NULL values.",
+                options: [],
+                image: null
+            },
+            
+            // JAVA
+            {
+                id: 4,
+                category: "Java",
+                type: "mcq",
+                text: "Which keyword is used by a class to inherit a superclass in Java?",
+                options: ["a) import", "b) super", "c) extends", "d) implements"],
+                image: null
+            },
+            {
+                id: 5,
+                category: "Java",
+                type: "mcq",
+                text: "What is the size of a double primitive data type in Java?",
+                options: ["a) 4 bytes", "b) 8 bytes", "c) 16 bytes", "d) Depends on the OS"],
+                image: null
+            },
+            {
+                id: 6,
+                category: "Java",
+                type: "dropdown",
+                text: "To handle exceptions in Java, the code that might throw an exception is placed in a [BLANK] block.",
+                options: ["catch", "throw", "finally", "try"],
+                image: null
+            },
+
+            // ALGORITHMS
+            {
+                id: 7,
+                category: "Algo",
+                type: "mcq",
+                text: "What is the worst-case time complexity of the Quick Sort algorithm?",
+                options: ["a) O(1)", "b) O(n)", "c) O(n log n)", "d) O(n^2)"],
+                image: null
+            },
+            {
+                id: 8,
+                category: "Algo",
+                type: "mcq",
+                text: "Which data structure follows the LIFO (Last In First Out) principle?",
+                options: ["a) Queue", "b) Stack", "c) Graph", "d) Tree"],
+                image: null
+            },
+
+            // NETWORKS
+            {
+                id: 9,
+                category: "Networks",
+                type: "mcq",
+                text: "Which layer of the OSI model is responsible for logical addressing and routing?",
+                options: ["a) Physical Layer", "b) Data Link Layer", "c) Network Layer", "d) Transport Layer"],
+                image: null
+            },
+            {
+                id: 10,
+                category: "Networks",
+                type: "dropdown",
+                text: "The standard port number for the HTTP protocol is [BLANK].",
+                options: ["21", "22", "80", "443"],
+                image: null
+            },
+            
+            // UNIFIED / OCR IMAGE TEST (Dummy Wikipedia Image as placeholder for OCR)
+            {
+                id: 11,
+                category: "Unified",
+                type: "mcq",
+                text: "Analyze the diagram. What type of architecture does this represent?",
+                options: ["a) Client-Server", "b) Peer-to-Peer", "c) Monolithic", "d) Microservices"],
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Client-server-model.svg/300px-Client-server-model.svg.png"
+            },
+            {
+                id: 12,
+                category: "Unified",
+                type: "dropdown",
+                text: "In Java, a [BLANK] is used to create an object, while a [BLANK] is used to initialize it.",
+                options: ["class", "constructor", "method", "variable"],
+                image: null
+            }
+        ];
+
+        let questions = [];
+        let currentFilter = 'All';
+        let currentIndex = 0;
+
+        // Initialize
+        function init() {
+            const saved = localStorage.getItem('moodleMockQuestions');
+            if (saved) {
+                questions = JSON.parse(saved);
+            } else {
+                questions = [...defaultQuestions];
+            }
+            renderQuestions();
+
+            // Toggle options field based on question type
+            document.getElementById('qType').addEventListener('change', function(e) {
+                const optsGroup = document.getElementById('optionsGroup');
+                if (e.target.value === 'open') {
+                    optsGroup.style.display = 'none';
+                } else {
+                    optsGroup.style.display = 'block';
+                }
+            });
+        }
+
+        // Render Questions to DOM
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            const filtered = currentFilter === 'All' 
+                ? questions 
+                : questions.filter(q => q.category === currentFilter);
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="que"><p>No questions found in this category.</p></div>';
+                updateNav(0, 0);
+                return;
+            }
+
+            if (currentIndex >= filtered.length) {
+                currentIndex = 0;
+            }
+
+            const q = filtered[currentIndex];
+            const queDiv = document.createElement('div');
+            queDiv.className = 'que';
+            
+            // Badge
+            const badge = document.createElement('span');
+            badge.className = 'badge';
+            badge.textContent = q.category;
+            queDiv.appendChild(badge);
+
+            // Qtext (Question body)
+            const qtextDiv = document.createElement('div');
+            qtextDiv.className = 'qtext';
+            
+            let pHTML = `<p>${currentIndex + 1}. ${q.text}</p>`;
+            
+            // If dropdown, replace [BLANK] with actual select element
+            if (q.type === 'dropdown' && q.text.includes('[BLANK]')) {
+                let selectHTML = `<select class="select"><option value=""></option>`;
+                q.options.forEach((opt, i) => {
+                    selectHTML += `<option value="${i+1}">${opt}</option>`;
+                });
+                selectHTML += `</select>`;
+                pHTML = `<p>${currentIndex + 1}. ${q.text.split('[BLANK]').join(selectHTML)}</p>`;
+            }
+                
+                qtextDiv.innerHTML = pHTML;
+
+            // Image integration
+            if (q.image) {
+                const img = document.createElement('img');
+                img.src = q.image;
+                img.className = 'img-fluid';
+                img.alt = "Mock Question Image";
+                qtextDiv.appendChild(img);
+            }
+
+            queDiv.appendChild(qtextDiv);
+
+            // Ablock (Options for MCQ)
+            if (q.type === 'mcq' && q.options && q.options.length > 0) {
+                const ablockDiv = document.createElement('div');
+                ablockDiv.className = 'ablock';
+                ablockDiv.innerHTML = q.options.join('<br>');
+                queDiv.appendChild(ablockDiv);
+            }
+
+            container.appendChild(queDiv);
+            updateNav(currentIndex, filtered.length);
+        }
+
+        // Update Navigation
+        function updateNav(index, total) {
+            document.getElementById('qCounter').textContent = total > 0 ? `Question ${index + 1} of ${total}` : 'No Questions';
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').disabled = total === 0 || index >= total - 1;
+        }
+
+        function nextQuestion() {
+            const filtered = currentFilter === 'All' ? questions : questions.filter(q => q.category === currentFilter);
+            if (currentIndex < filtered.length - 1) {
+                currentIndex++;
+                renderQuestions();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestions();
+            }
+        }
+
+        // Filter Logic
+        function setFilter(category, btnElement) {
+            currentFilter = category;
+            currentIndex = 0; // Reset index when filtering
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            renderQuestions();
+        }
+
+        // Add Question from form
+        function addQuestion() {
+            const cat = document.getElementById('qCategory').value;
+            const type = document.getElementById('qType').value;
+            const text = document.getElementById('qText').value.trim();
+            const img = document.getElementById('qImage').value.trim();
+            const optsRaw = document.getElementById('qOptions').value;
+
+            if (!text) {
+                alert('Please enter question text');
+                return;
+            }
+
+            let opts = [];
+            if (type !== 'open') {
+                opts = optsRaw.split('\n').map(o => o.trim()).filter(o => o.length > 0);
+                if (opts.length === 0) {
+                    alert('Please enter at least one option for MCQ/Dropdown.');
+                    return;
+                }
+            }
+
+            const newQ = {
+                id: Date.now(),
+                category: cat,
+                type: type,
+                text: text,
+                options: opts,
+                image: img || null
+            };
+
+            questions.push(newQ);
+            localStorage.setItem('moodleMockQuestions', JSON.stringify(questions));
+            
+            // Re-render
+            renderQuestions();
+
+            // Clear form
+            document.getElementById('qText').value = '';
+            document.getElementById('qImage').value = '';
+            document.getElementById('qOptions').value = '';
+        }
+
+        // Reset
+        function resetQuestions() {
+            if (confirm("Are you sure you want to reset to the default 11 questions? Custom ones will be lost.")) {
+                questions = [...defaultQuestions];
+                localStorage.removeItem('moodleMockQuestions');
+                renderQuestions();
+            }
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

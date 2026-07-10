@@ -1,0 +1,13 @@
+.env
+node_modules/
+eng.traineddata
+image.png
+dist/
+
+*.rar
+*.zip
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moodleAI</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <!-- Abstract background layers -->
+  <div class="bg-layer" aria-hidden="true">
+    <div class="bg-grid"></div>
+    <div class="bg-noise"></div>
+    <div class="bg-glow bg-glow-a"></div>
+    <div class="bg-glow bg-glow-b"></div>
+    <div class="bg-glow bg-glow-c"></div>
+    <div class="pixel-scatter">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="scanlines"></div>
+  </div>
+
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <span class="logo-pixel p1"></span>
+          <span class="logo-pixel p2"></span>
+          <span class="logo-pixel p3"></span>
+          <span class="logo-pixel p4"></span>
+          <span class="logo-core">AI</span>
+        </div>
+        <div class="brand-text">
+          <h1>moodle<span class="accent">AI</span></h1>
+          <p class="tagline">// QUIZ_SYS v3.0</p>
+        </div>
+      </div>
+      <div class="power-wrap">
+        <span class="power-label" id="powerLabel">ON</span>
+        <label class="toggle" title="Enable / disable">
+          <input type="checkbox" id="enabledToggle" checked />
+          <span class="toggle-slider">
+            <span class="toggle-knob"></span>
+          </span>
+        </label>
+      </div>
+    </header>
+
+    <div class="hud-bar">
+      <span class="hud-dot"></span>
+      <span class="hud-text">LINK ESTABLISHED</span>
+      <span class="hud-line"></span>
+    </div>
+
+    <!-- Provider & API key -->
+    <section class="card">
+      <div class="card-frame">
+        <div class="card-title">
+          <h2><span class="title-icon">◈</span> AI_PROVIDER</h2>
+          <span id="keyStatus" class="badge warn">NO_KEY</span>
+        </div>
+
+        <div class="field">
+          <label for="providerSelect">> PROVIDER</label>
+          <div class="select-wrap">
+            <select id="providerSelect"></select>
+          </div>
+          <div class="provider-meta" id="providerMeta"></div>
+        </div>
+
+        <div class="field">
+          <label for="apiKey">> API_KEY</label>
+          <div class="key-wrap">
+            <input type="password" id="apiKey" autocomplete="off" spellcheck="false" placeholder="paste_key_here" />
+            <button type="button" class="key-toggle" id="toggleKey" title="Show / hide">SHOW</button>
+          </div>
+          <p class="hint" id="keyHint">keys stored locally only.</p>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="textModel">> TEXT</label>
+            <div class="select-wrap">
+              <select id="textModel"></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="visionModel">> VISION</label>
+            <div class="select-wrap">
+              <select id="visionModel"></select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Subject / prompt -->
+    <section class="card">
+      <div class="card-frame">
+        <div class="card-title">
+          <h2><span class="title-icon">◇</span> SUBJECT_PROFILE</h2>
+        </div>
+
+        <div class="field">
+          <label for="subjectSelect">> PROFILE</label>
+          <div class="select-wrap">
+            <select id="subjectSelect"></select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="systemPrompt">> SYSTEM_PROMPT</label>
+          <textarea id="systemPrompt" placeholder="model_instructions..."></textarea>
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button type="button" class="primary" id="saveBtn">
+        <span class="btn-glitch" aria-hidden="true"></span>
+        <span class="btn-label">[ SAVE_SETTINGS ]</span>
+      </button>
+      <div id="status" class="status"></div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-pixels" aria-hidden="true"></div>
+      <p>ANS · opacity 0.1 · toggle <kbd>"</kbd></p>
+    </footer>
+  </div>
+
+  <script src="../../dist/popup.bundle.js"></script>
+  <script>
+    // Power label sync (tiny inline, no rebuild needed)
+    (function () {
+      var t = document.getElementById('enabledToggle');
+      var l = document.getElementById('powerLabel');
+      if (!t || !l) return;
+      function sync() { l.textContent = t.checked ? 'ON' : 'OFF'; l.classList.toggle('off', !t.checked); }
+      t.addEventListener('change', sync);
+      sync();
+    })();
+  </script>
+</body>
+</html>

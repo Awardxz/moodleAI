@@ -1,0 +1,38 @@
+{
+  "name": "moodleai",
+  "version": "3.0.0",
+  "description": "Chrome extension: multi-provider AI assistant for Moodle quizzes",
+  "main": "src/server/index.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "build:watch": "webpack --mode development --watch",
+    "server": "node src/server/index.js",
+    "dev": "npm run build:dev && npm run server"
+  },
+  "keywords": [
+    "moodle",
+    "chrome-extension",
+    "ai",
+    "openai",
+    "groq",
+    "claude"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "multer": "^2.0.1",
+    "tesseract.js": "^6.0.1"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^5.1.0",
+    "terser-webpack-plugin": "^5.3.16",
+    "webpack": "^5.104.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-obfuscator": "^3.6.0"
+  }
+}
