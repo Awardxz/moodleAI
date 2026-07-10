@@ -16,6 +16,8 @@ export const PROVIDERS = {
         'llama-3.3-70b-versatile',
         'llama-3.1-8b-instant',
         'meta-llama/llama-4-scout-17b-16e-instruct',
+        'openai/gpt-oss-120b',
+        'openai/gpt-oss-20b'
       ],
       vision: [
         'meta-llama/llama-4-scout-17b-16e-instruct',
@@ -35,8 +37,8 @@ export const PROVIDERS = {
     keyPlaceholder: 'sk-...',
     docsUrl: 'https://platform.openai.com/api-keys',
     models: {
-      text: ['gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini', 'o4-mini'],
-      vision: ['gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini'],
+      text: ['gpt-5.6-sol','gpt-5.6-terra','gpt-5.6-luna','gpt-5.5','gpt-5.4','gpt-5.5-pro','gpt-5.4-pro','gpt-5.4-mini','gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini', 'o4-mini',''],
+      vision: ['gpt-5.6-luna','gpt-5.5','gpt-5.4','gpt-5.5-pro','gpt-5.4-pro','gpt-5.4-mini','gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini', 'o4-mini',''],
     },
     defaults: {
       text: 'gpt-4o-mini',
@@ -52,19 +54,22 @@ export const PROVIDERS = {
     docsUrl: 'https://console.anthropic.com/settings/keys',
     models: {
       text: [
-        'claude-sonnet-4-20250514',
-        'claude-3-5-haiku-20241022',
-        'claude-3-5-sonnet-20241022',
+        'claude-sonnet-5',
+        'claude-opus-4-8',
+        'claude-sonnet-4-6',
+        'claude-haiku-4-5',
+
       ],
       vision: [
-        'claude-sonnet-4-20250514',
-        'claude-3-5-sonnet-20241022',
-        'claude-3-5-haiku-20241022',
+        'claude-sonnet-5',
+        'claude-opus-4-8',
+        'claude-sonnet-4-6',
+        'claude-haiku-4-5',
       ],
     },
     defaults: {
-      text: 'claude-sonnet-4-20250514',
-      vision: 'claude-sonnet-4-20250514',
+      text: 'claude-haiku-4-5',
+      vision: 'claude-haiku-4-5',
     },
   },
   xai: {
@@ -75,12 +80,12 @@ export const PROVIDERS = {
     keyPlaceholder: 'xai-...',
     docsUrl: 'https://console.x.ai/',
     models: {
-      text: ['grok-3', 'grok-3-mini', 'grok-2-1212'],
-      vision: ['grok-2-vision-1212'],
+      text: ['grok-4.3', 'grok-4-fast', 'grok-3','grok-4.5'],
+      vision: ['grok-4.3', 'grok-4-fast', 'grok-3','grok-4.5'],
     },
     defaults: {
-      text: 'grok-3-mini',
-      vision: 'grok-2-vision-1212',
+      text: 'grok-3',
+      vision: 'grok-3',
     },
   },
   deepseek: {
@@ -91,11 +96,11 @@ export const PROVIDERS = {
     keyPlaceholder: 'sk-...',
     docsUrl: 'https://platform.deepseek.com/api_keys',
     models: {
-      text: ['deepseek-chat', 'deepseek-reasoner'],
+      text: ['deepseek-v4-flash', 'deepseek-v4-pro'],
       vision: [],
     },
     defaults: {
-      text: 'deepseek-chat',
+      text: 'deepseek-v4-pro',
       vision: null,
     },
   },
@@ -107,12 +112,12 @@ export const PROVIDERS = {
     keyPlaceholder: 'AIza...',
     docsUrl: 'https://aistudio.google.com/apikey',
     models: {
-      text: ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-pro'],
-      vision: ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-pro'],
+      text: ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-3-flash-preview','gemini-3.1-pro-preview'],
+      vision: ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-3-flash-preview','gemini-3.1-pro-preview'],
     },
     defaults: {
-      text: 'gemini-2.0-flash',
-      vision: 'gemini-2.0-flash',
+      text: 'gemini-3-flash-preview',
+      vision: 'gemini-3-flash-preview',
     },
   },
 };
