@@ -16,6 +16,7 @@ import {
 import { findQuestionElements, parseQuestion, buildUserPrompt } from './question.js';
 import { captureQuestionImage } from './capture.js';
 import { hasProcessedAnswer, clearAnswer, showAnswer, showStatus } from './display.js';
+import { DEFAULT_SELECTORS, normalizeSelectors } from '../shared/selectors.js';
 
 const POLL_MS = 3000;
 
@@ -91,10 +92,14 @@ async function solve({ force = false } = {}) {
   if (!settings?.enabled) return;
   if (inFlight) return;
 
-  const els = findQuestionElements();
+  const selectors = normalizeSelectors(settings.selectors || DEFAULT_SELECTORS);
+  const els = findQuestionElements(selectors);
   if (!els) {
     if (force) {
-      console.log('[moodleAI] Solve hotkey pressed but no Moodle question found');
+      console.log(
+        '[moodleAI] Solve hotkey pressed but no question found for selector:',
+        selectors.qtext
+      );
     }
     return;
   }
@@ -183,6 +188,8 @@ async function init() {
     settings.solveMode,
     'Hotkey:',
     formatHotkey(settings.solveHotkey),
+    'Theme:',
+    settings.themeProfile,
     'Enabled:',
     settings.enabled
   );
@@ -193,6 +200,8 @@ async function init() {
       if (changes[key].newValue !== undefined) {
         if (key === 'solveHotkey') {
           settings.solveHotkey = normalizeHotkey(changes[key].newValue);
+        } else if (key === 'selectors') {
+          settings.selectors = normalizeSelectors(changes[key].newValue);
         } else {
           settings[key] = changes[key].newValue;
         }

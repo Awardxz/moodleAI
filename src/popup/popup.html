@@ -145,6 +145,54 @@
       </div>
     </section>
 
+    <!-- Theme / CSS selectors -->
+    <section class="card">
+      <div class="card-frame">
+        <div class="card-title">
+          <h2><span class="title-icon">◎</span> THEME_SELECTORS</h2>
+        </div>
+
+        <div class="field">
+          <label for="themeSelect">> PROFILE</label>
+          <div class="select-wrap">
+            <select id="themeSelect"></select>
+          </div>
+          <p class="hint" id="themeHint">default: standard Moodle .qtext + .ablock</p>
+        </div>
+
+        <div class="field">
+          <label for="selQtext">> QTEXT (question)</label>
+          <input type="text" id="selQtext" spellcheck="false" placeholder=".qtext" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="selAblock">> ABLOCK (options)</label>
+          <input type="text" id="selAblock" spellcheck="false" placeholder=".ablock" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="selRoot">> ROOT (wrapper)</label>
+          <input type="text" id="selRoot" spellcheck="false" placeholder=".que" autocomplete="off" />
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="selImg">> IMG</label>
+            <input type="text" id="selImg" spellcheck="false" placeholder="img" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="selSelect">> SELECT</label>
+            <input type="text" id="selSelect" spellcheck="false" placeholder="select" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="hotkey-row selector-actions">
+          <button type="button" class="key-toggle" id="resetSelectorsBtn" title="Reset to standard Moodle defaults">RESET</button>
+          <p class="hint selector-actions-hint">comma-separated CSS ok · edit fields → becomes Custom</p>
+        </div>
+      </div>
+    </section>
+
     <div class="actions">
       <button type="button" class="primary" id="saveBtn">
         <span class="btn-glitch" aria-hidden="true"></span>

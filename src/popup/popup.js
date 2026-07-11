@@ -7,6 +7,13 @@ import {
   hotkeyFromEvent,
   normalizeHotkey,
 } from '../shared/hotkeys.js';
+import {
+  THEME_PRESETS,
+  THEME_PRESET_ORDER,
+  getThemePreset,
+  normalizeSelectors,
+  selectorsEqual,
+} from '../shared/selectors.js';
 
 const els = {
   enabledToggle: document.getElementById('enabledToggle'),
@@ -26,6 +33,14 @@ const els = {
   recordHotkeyBtn: document.getElementById('recordHotkeyBtn'),
   hotkeyHint: document.getElementById('hotkeyHint'),
   footerHotkey: document.getElementById('footerHotkey'),
+  themeSelect: document.getElementById('themeSelect'),
+  themeHint: document.getElementById('themeHint'),
+  selQtext: document.getElementById('selQtext'),
+  selAblock: document.getElementById('selAblock'),
+  selRoot: document.getElementById('selRoot'),
+  selImg: document.getElementById('selImg'),
+  selSelect: document.getElementById('selSelect'),
+  resetSelectorsBtn: document.getElementById('resetSelectorsBtn'),
   saveBtn: document.getElementById('saveBtn'),
   status: document.getElementById('status'),
 };
@@ -33,6 +48,8 @@ const els = {
 /** @type {import('../shared/hotkeys.js').Hotkey} */
 let pendingHotkey = { ...DEFAULT_SOLVE_HOTKEY };
 let recording = false;
+/** When true, selector field edits should flip profile to Custom */
+let suppressSelectorSync = false;
 
 function fillProviders() {
   els.providerSelect.innerHTML = Object.values(PROVIDERS)
@@ -44,6 +61,13 @@ function fillSubjects() {
   els.subjectSelect.innerHTML = Object.entries(SUBJECT_LABELS)
     .map(([value, label]) => `<option value="${value}">${label}</option>`)
     .join('');
+}
+
+function fillThemes() {
+  els.themeSelect.innerHTML = THEME_PRESET_ORDER.map((id) => {
+    const p = THEME_PRESETS[id];
+    return `<option value="${p.id}">${p.name}</option>`;
+  }).join('');
 }
 
 function fillModels(providerId, selectedText, selectedVision) {
@@ -110,6 +134,53 @@ function setHotkeyDisplay(hotkey) {
   if (els.footerHotkey) els.footerHotkey.textContent = label;
 }
 
+function readSelectorsFromForm() {
+  return normalizeSelectors({
+    qtext: els.selQtext.value,
+    ablock: els.selAblock.value,
+    root: els.selRoot.value,
+    img: els.selImg.value,
+    select: els.selSelect.value,
+  });
+}
+
+function writeSelectorsToForm(selectors) {
+  const s = normalizeSelectors(selectors);
+  suppressSelectorSync = true;
+  els.selQtext.value = s.qtext;
+  els.selAblock.value = s.ablock;
+  els.selRoot.value = s.root;
+  els.selImg.value = s.img;
+  els.selSelect.value = s.select;
+  suppressSelectorSync = false;
+}
+
+function updateThemeHint() {
+  const id = els.themeSelect.value;
+  const preset = getThemePreset(id);
+  els.themeHint.textContent = preset.description || '';
+}
+
+function applyThemePreset(id) {
+  const preset = getThemePreset(id);
+  writeSelectorsToForm(preset.selectors);
+  updateThemeHint();
+}
+
+function onSelectorFieldEdit() {
+  if (suppressSelectorSync) return;
+  const current = readSelectorsFromForm();
+  // If values no longer match the selected preset, mark as custom
+  const presetId = els.themeSelect.value;
+  if (presetId !== 'custom') {
+    const preset = getThemePreset(presetId);
+    if (!selectorsEqual(current, preset.selectors)) {
+      els.themeSelect.value = 'custom';
+      updateThemeHint();
+    }
+  }
+}
+
 function showStatus(message, isError = false) {
   els.status.textContent = message;
   els.status.classList.add('show');
@@ -139,6 +210,7 @@ function startRecording() {
 async function load() {
   fillProviders();
   fillSubjects();
+  fillThemes();
 
   const s = await getSettings();
 
@@ -152,6 +224,11 @@ async function load() {
   pendingHotkey = normalizeHotkey(s.solveHotkey);
   setHotkeyDisplay(pendingHotkey);
   updateSolveModeHint();
+
+  const themeId = THEME_PRESETS[s.themeProfile] ? s.themeProfile : 'standard';
+  els.themeSelect.value = themeId;
+  writeSelectorsToForm(s.selectors || getThemePreset(themeId).selectors);
+  updateThemeHint();
 
   fillModels(els.providerSelect.value, s.textModel, s.visionModel);
   updateProviderMeta(els.providerSelect.value);
@@ -172,6 +249,26 @@ els.subjectSelect.addEventListener('change', () => {
 });
 
 els.solveModeSelect.addEventListener('change', updateSolveModeHint);
+
+els.themeSelect.addEventListener('change', () => {
+  const id = els.themeSelect.value;
+  if (id === 'custom') {
+    // Keep current field values; only update hint
+    updateThemeHint();
+    return;
+  }
+  applyThemePreset(id);
+});
+
+els.resetSelectorsBtn.addEventListener('click', () => {
+  els.themeSelect.value = 'standard';
+  applyThemePreset('standard');
+  showStatus('>> DEFAULTS');
+});
+
+['selQtext', 'selAblock', 'selRoot', 'selImg', 'selSelect'].forEach((id) => {
+  els[id].addEventListener('input', onSelectorFieldEdit);
+});
 
 els.apiKey.addEventListener('input', updateKeyStatus);
 
@@ -207,13 +304,11 @@ window.addEventListener(
     const next = hotkeyFromEvent(e);
     if (!next) return;
 
-    // Require at least one modifier so single letters don't hijack typing
     if (!next.ctrl && !next.alt && !next.meta && !next.shift) {
       els.hotkeyHint.textContent = 'use a modifier (Ctrl / Alt / Shift) + key';
       return;
     }
 
-    // Reserve " for answer toggle
     if (next.key === '"' || next.key === "'") {
       els.hotkeyHint.textContent = 'that key is reserved for answer hide/show';
       return;
@@ -235,6 +330,12 @@ els.saveBtn.addEventListener('click', async () => {
 
   const providerId = els.providerSelect.value;
   const provider = getProvider(providerId);
+  const selectors = readSelectorsFromForm();
+
+  if (!selectors.qtext) {
+    showStatus('QTEXT required', true);
+    return;
+  }
 
   const payload = {
     enabled: els.enabledToggle.checked,
@@ -246,6 +347,8 @@ els.saveBtn.addEventListener('click', async () => {
     customPrompt: els.systemPrompt.value,
     solveMode: els.solveModeSelect.value === 'manual' ? 'manual' : 'auto',
     solveHotkey: normalizeHotkey(pendingHotkey),
+    themeProfile: els.themeSelect.value || 'standard',
+    selectors,
   };
 
   try {

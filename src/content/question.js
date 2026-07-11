@@ -1,36 +1,66 @@
 /**
  * Moodle question DOM parsing helpers.
+ * Uses configurable CSS selectors (theme profiles).
  */
+
+import {
+  DEFAULT_SELECTORS,
+  normalizeSelectors,
+  safeQuery,
+  safeQueryAll,
+} from '../shared/selectors.js';
 
 /**
  * Find the active Moodle question root and answer block.
- * @returns {{ qtext: Element, ablock: Element|null, root: Element }|null}
+ * @param {import('../shared/selectors.js').SelectorConfig} [selectorConfig]
+ * @returns {{ qtext: Element, ablock: Element|null, root: Element, selectors: object }|null}
  */
-export function findQuestionElements() {
-  const qtext = document.querySelector('.qtext');
+export function findQuestionElements(selectorConfig) {
+  const s = normalizeSelectors(selectorConfig || DEFAULT_SELECTORS);
+
+  const qtext = safeQuery(document, s.qtext);
   if (!qtext) return null;
 
-  const root = qtext.closest('.que') || qtext.parentElement || qtext;
+  let root = qtext;
+  if (s.root) {
+    try {
+      root = qtext.closest(s.root) || qtext.parentElement || qtext;
+    } catch {
+      root = qtext.parentElement || qtext;
+    }
+  } else {
+    root = qtext.parentElement || qtext;
+  }
+
   const ablock =
-    root.querySelector?.('.ablock') ||
-    document.querySelector('.ablock') ||
+    safeQuery(root, s.ablock) ||
+    safeQuery(document, s.ablock) ||
     null;
 
-  return { qtext, ablock, root };
+  return { qtext, ablock, root, selectors: s };
 }
 
 /**
  * Extract structured question payload for the AI.
- * @param {{ qtext: Element, ablock: Element|null }} els
+ * @param {{ qtext: Element, ablock: Element|null, root: Element, selectors?: object }} els
  * @returns {{ questionText: string, optionsText: string, dropdownOptions: string, selectCount: number, img: HTMLImageElement|null }}
  */
 export function parseQuestion(els) {
   const { qtext, ablock, root } = els;
+  const s = normalizeSelectors(els.selectors || DEFAULT_SELECTORS);
 
   const questionText = (qtext.textContent || '').trim();
   const optionsText = ablock ? (ablock.textContent || '').trim() : '';
 
-  const selectElements = qtext.querySelectorAll('select.select, select');
+  // Prefer selects inside question text, then answer block, then root
+  let selectElements = safeQueryAll(qtext, s.select);
+  if (!selectElements.length && ablock) {
+    selectElements = safeQueryAll(ablock, s.select);
+  }
+  if (!selectElements.length && root) {
+    selectElements = safeQueryAll(root, s.select);
+  }
+
   let dropdownOptions = '';
   let selectCount = 0;
 
@@ -45,11 +75,9 @@ export function parseQuestion(els) {
     }
   });
 
-  const img =
-    root?.querySelector?.('.img-fluid') ||
-    qtext.querySelector('img') ||
-    root?.querySelector?.('img[role="presentation"]') ||
-    root?.querySelector?.('img') ||
+  const imgEl =
+    safeQuery(root, s.img) ||
+    safeQuery(qtext, s.img) ||
     null;
 
   return {
@@ -57,7 +85,7 @@ export function parseQuestion(els) {
     optionsText,
     dropdownOptions,
     selectCount: selectCount || selectElements.length,
-    img: img instanceof HTMLImageElement ? img : null,
+    img: imgEl instanceof HTMLImageElement ? imgEl : null,
   };
 }
 

@@ -16,6 +16,7 @@
 | **Vision support** | Image questions via canvas capture or cropped tab screenshot |
 | **Discreet UI** | Answers render at near-invisible gray opacity; toggle with `"` |
 | **Solve modes** | **Automatic** (default): detect & solve · **Manual**: solve only on a configurable hotkey |
+| **Theme selectors** | Default Moodle `.qtext` / `.ablock` · presets + fully custom CSS for university themes |
 | **Subject profiles** | Java, Databases, Algorithms, Networks, Unified, or a custom system prompt |
 | **Pixel settings popup** | Dark monochrome HUD to configure provider, models, and prompts |
 
@@ -126,7 +127,8 @@ npm run build
 6. Pick a **subject profile** or edit the system prompt  
 7. Choose **Solve mode**: Automatic (default) or Manual  
 8. Optionally set a custom **solve hotkey** (default `Ctrl+Shift+S`)  
-9. Click **`[ SAVE_SETTINGS ]`**
+9. If questions are not detected, open **THEME_SELECTORS** — keep **Standard Moodle** (`.qtext` / `.ablock`) or pick a preset / enter custom CSS for your university  
+10. Click **`[ SAVE_SETTINGS ]`**
 
 ### 4. Use on a quiz
 

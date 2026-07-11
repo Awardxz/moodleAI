@@ -5,6 +5,11 @@
 import { DEFAULT_PROMPTS } from './prompts.js';
 import { getProvider } from './providers.js';
 import { DEFAULT_SOLVE_HOTKEY, normalizeHotkey } from './hotkeys.js';
+import {
+  DEFAULT_SELECTORS,
+  getThemePreset,
+  normalizeSelectors,
+} from './selectors.js';
 
 export const STORAGE_KEYS = {
   provider: 'provider',
@@ -16,6 +21,8 @@ export const STORAGE_KEYS = {
   enabled: 'enabled',
   solveMode: 'solveMode',
   solveHotkey: 'solveHotkey',
+  themeProfile: 'themeProfile',
+  selectors: 'selectors',
 };
 
 /** @typedef {'auto'|'manual'} SolveMode */
@@ -30,7 +37,21 @@ const DEFAULTS = {
   enabled: true,
   solveMode: 'auto',
   solveHotkey: { ...DEFAULT_SOLVE_HOTKEY },
+  themeProfile: 'standard',
+  selectors: { ...DEFAULT_SELECTORS },
 };
+
+/**
+ * Prefer last-saved selector strings; fall back to the named preset, then defaults.
+ * @param {string} themeProfile
+ * @param {object} [storedSelectors]
+ */
+function resolveSelectors(themeProfile, storedSelectors) {
+  if (storedSelectors && typeof storedSelectors === 'object') {
+    return normalizeSelectors(storedSelectors);
+  }
+  return normalizeSelectors(getThemePreset(themeProfile).selectors);
+}
 
 /**
  * @returns {Promise<object>}
@@ -41,6 +62,7 @@ export function getSettings() {
       resolve({
         ...DEFAULTS,
         solveHotkey: { ...DEFAULT_SOLVE_HOTKEY },
+        selectors: { ...DEFAULT_SELECTORS },
       });
       return;
     }
@@ -49,6 +71,7 @@ export function getSettings() {
       const providerId = result.provider || DEFAULTS.provider;
       const provider = getProvider(providerId);
       const solveMode = result.solveMode === 'manual' ? 'manual' : 'auto';
+      const themeProfile = result.themeProfile || DEFAULTS.themeProfile;
 
       resolve({
         provider: providerId,
@@ -63,6 +86,8 @@ export function getSettings() {
         enabled: result.enabled !== false,
         solveMode,
         solveHotkey: normalizeHotkey(result.solveHotkey),
+        themeProfile,
+        selectors: resolveSelectors(themeProfile, result.selectors),
       });
     });
   });

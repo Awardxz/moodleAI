@@ -607,6 +607,33 @@ textarea {
   animation: pulse-dot 1s steps(2) infinite;
 }
 
+.selector-actions {
+  margin-top: 4px;
+  align-items: center;
+}
+
+.selector-actions .key-toggle {
+  position: static;
+  transform: none;
+  flex-shrink: 0;
+}
+
+.selector-actions-hint {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+#selQtext,
+#selAblock,
+#selRoot,
+#selImg,
+#selSelect {
+  font-family: var(--font-body);
+  font-size: 15px;
+  letter-spacing: 0.2px;
+}
+
 .key-wrap {
   position: relative;
 }
