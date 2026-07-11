@@ -1,6 +1,12 @@
 import { PROVIDERS, getProvider, supportsVision } from '../shared/providers.js';
 import { DEFAULT_PROMPTS, SUBJECT_LABELS } from '../shared/prompts.js';
 import { getSettings, saveSettings } from '../shared/storage.js';
+import {
+  DEFAULT_SOLVE_HOTKEY,
+  formatHotkey,
+  hotkeyFromEvent,
+  normalizeHotkey,
+} from '../shared/hotkeys.js';
 
 const els = {
   enabledToggle: document.getElementById('enabledToggle'),
@@ -14,9 +20,19 @@ const els = {
   visionModel: document.getElementById('visionModel'),
   subjectSelect: document.getElementById('subjectSelect'),
   systemPrompt: document.getElementById('systemPrompt'),
+  solveModeSelect: document.getElementById('solveModeSelect'),
+  solveModeHint: document.getElementById('solveModeHint'),
+  hotkeyDisplay: document.getElementById('hotkeyDisplay'),
+  recordHotkeyBtn: document.getElementById('recordHotkeyBtn'),
+  hotkeyHint: document.getElementById('hotkeyHint'),
+  footerHotkey: document.getElementById('footerHotkey'),
   saveBtn: document.getElementById('saveBtn'),
   status: document.getElementById('status'),
 };
+
+/** @type {import('../shared/hotkeys.js').Hotkey} */
+let pendingHotkey = { ...DEFAULT_SOLVE_HOTKEY };
+let recording = false;
 
 function fillProviders() {
   els.providerSelect.innerHTML = Object.values(PROVIDERS)
@@ -81,6 +97,19 @@ function updateKeyStatus() {
   els.keyStatus.className = `badge ${hasKey ? 'ok' : 'warn'}`;
 }
 
+function updateSolveModeHint() {
+  const manual = els.solveModeSelect.value === 'manual';
+  els.solveModeHint.textContent = manual
+    ? 'manual: only solves when you press the hotkey'
+    : 'auto: detects questions and solves · hotkey still forces re-solve';
+}
+
+function setHotkeyDisplay(hotkey) {
+  const label = formatHotkey(hotkey);
+  els.hotkeyDisplay.value = label;
+  if (els.footerHotkey) els.footerHotkey.textContent = label;
+}
+
 function showStatus(message, isError = false) {
   els.status.textContent = message;
   els.status.classList.add('show');
@@ -88,6 +117,23 @@ function showStatus(message, isError = false) {
   setTimeout(() => {
     els.status.classList.remove('show');
   }, 2400);
+}
+
+function stopRecording() {
+  recording = false;
+  els.recordHotkeyBtn.textContent = 'SET';
+  els.recordHotkeyBtn.classList.remove('recording');
+  els.hotkeyDisplay.classList.remove('recording');
+  els.hotkeyHint.textContent = 'click SET, then press your shortcut · works in both modes';
+}
+
+function startRecording() {
+  recording = true;
+  els.recordHotkeyBtn.textContent = '...';
+  els.recordHotkeyBtn.classList.add('recording');
+  els.hotkeyDisplay.classList.add('recording');
+  els.hotkeyDisplay.value = 'press keys…';
+  els.hotkeyHint.textContent = 'listening… Esc to cancel';
 }
 
 async function load() {
@@ -101,6 +147,11 @@ async function load() {
   els.apiKey.value = s.apiKey || '';
   els.subjectSelect.value = s.subject || 'Unified';
   els.systemPrompt.value = s.customPrompt || DEFAULT_PROMPTS.Unified || '';
+  els.solveModeSelect.value = s.solveMode === 'manual' ? 'manual' : 'auto';
+
+  pendingHotkey = normalizeHotkey(s.solveHotkey);
+  setHotkeyDisplay(pendingHotkey);
+  updateSolveModeHint();
 
   fillModels(els.providerSelect.value, s.textModel, s.visionModel);
   updateProviderMeta(els.providerSelect.value);
@@ -120,6 +171,8 @@ els.subjectSelect.addEventListener('change', () => {
   }
 });
 
+els.solveModeSelect.addEventListener('change', updateSolveModeHint);
+
 els.apiKey.addEventListener('input', updateKeyStatus);
 
 els.toggleKey.addEventListener('click', () => {
@@ -128,7 +181,58 @@ els.toggleKey.addEventListener('click', () => {
   els.toggleKey.textContent = isHidden ? 'Hide' : 'Show';
 });
 
+els.recordHotkeyBtn.addEventListener('click', () => {
+  if (recording) {
+    stopRecording();
+    setHotkeyDisplay(pendingHotkey);
+    return;
+  }
+  startRecording();
+});
+
+window.addEventListener(
+  'keydown',
+  (e) => {
+    if (!recording) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.key === 'Escape') {
+      stopRecording();
+      setHotkeyDisplay(pendingHotkey);
+      return;
+    }
+
+    const next = hotkeyFromEvent(e);
+    if (!next) return;
+
+    // Require at least one modifier so single letters don't hijack typing
+    if (!next.ctrl && !next.alt && !next.meta && !next.shift) {
+      els.hotkeyHint.textContent = 'use a modifier (Ctrl / Alt / Shift) + key';
+      return;
+    }
+
+    // Reserve " for answer toggle
+    if (next.key === '"' || next.key === "'") {
+      els.hotkeyHint.textContent = 'that key is reserved for answer hide/show';
+      return;
+    }
+
+    pendingHotkey = next;
+    setHotkeyDisplay(pendingHotkey);
+    stopRecording();
+    els.hotkeyHint.textContent = 'hotkey updated — save settings to apply';
+  },
+  true
+);
+
 els.saveBtn.addEventListener('click', async () => {
+  if (recording) {
+    stopRecording();
+    setHotkeyDisplay(pendingHotkey);
+  }
+
   const providerId = els.providerSelect.value;
   const provider = getProvider(providerId);
 
@@ -140,6 +244,8 @@ els.saveBtn.addEventListener('click', async () => {
     visionModel: els.visionModel.value || provider.defaults.vision || provider.defaults.text,
     subject: els.subjectSelect.value,
     customPrompt: els.systemPrompt.value,
+    solveMode: els.solveModeSelect.value === 'manual' ? 'manual' : 'auto',
+    solveHotkey: normalizeHotkey(pendingHotkey),
   };
 
   try {

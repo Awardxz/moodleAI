@@ -116,6 +116,35 @@
       </div>
     </section>
 
+    <!-- Solve mode / hotkey -->
+    <section class="card">
+      <div class="card-frame">
+        <div class="card-title">
+          <h2><span class="title-icon">▣</span> SOLVE_MODE</h2>
+        </div>
+
+        <div class="field">
+          <label for="solveModeSelect">> MODE</label>
+          <div class="select-wrap">
+            <select id="solveModeSelect">
+              <option value="auto">Automatic (default)</option>
+              <option value="manual">Manual (hotkey only)</option>
+            </select>
+          </div>
+          <p class="hint" id="solveModeHint">auto: detect questions and solve · manual: wait for hotkey</p>
+        </div>
+
+        <div class="field">
+          <label for="hotkeyDisplay">> SOLVE_HOTKEY</label>
+          <div class="hotkey-row">
+            <input type="text" id="hotkeyDisplay" readonly value="Ctrl+Shift+S" spellcheck="false" />
+            <button type="button" class="key-toggle hotkey-record" id="recordHotkeyBtn" title="Click then press a shortcut">SET</button>
+          </div>
+          <p class="hint" id="hotkeyHint">click SET, then press your shortcut · works in both modes</p>
+        </div>
+      </div>
+    </section>
+
     <div class="actions">
       <button type="button" class="primary" id="saveBtn">
         <span class="btn-glitch" aria-hidden="true"></span>
@@ -126,7 +155,7 @@
 
     <footer class="footer">
       <div class="footer-pixels" aria-hidden="true"></div>
-      <p>ANS · opacity 0.1 · toggle <kbd>"</kbd></p>
+      <p>ANS · opacity 0.1 · toggle <kbd>"</kbd> · solve <kbd id="footerHotkey">Ctrl+Shift+S</kbd></p>
     </footer>
   </div>
 

@@ -15,6 +15,7 @@
 | **Free-tier path** | **Groq** is the recommended free / low-cost route |
 | **Vision support** | Image questions via canvas capture or cropped tab screenshot |
 | **Discreet UI** | Answers render at near-invisible gray opacity; toggle with `"` |
+| **Solve modes** | **Automatic** (default): detect & solve · **Manual**: solve only on a configurable hotkey |
 | **Subject profiles** | Java, Databases, Algorithms, Networks, Unified, or a custom system prompt |
 | **Pixel settings popup** | Dark monochrome HUD to configure provider, models, and prompts |
 
@@ -70,6 +71,7 @@ End-to-end flow when you open a Moodle quiz attempt:
 | Step | Behavior |
 |------|----------|
 | Question loads | Extension detects Moodle markup (`.qtext`) |
+| Solve | **Auto** (default): runs after detection · **Manual**: wait for solve hotkey (default `Ctrl+Shift+S`, changeable in popup) |
 | Processing | Request goes to the provider selected in settings |
 | Answer ready | Appended under the options block as **near-invisible gray** (`opacity: 0.1`) |
 | Toggle | Press **`"`** (quote key) to switch between `0.1` and fully hidden (`0`) |
@@ -122,14 +124,18 @@ npm run build
 4. Paste your **API key**  
 5. Select **text** and **vision** models  
 6. Pick a **subject profile** or edit the system prompt  
-7. Click **`[ SAVE_SETTINGS ]`**
+7. Choose **Solve mode**: Automatic (default) or Manual  
+8. Optionally set a custom **solve hotkey** (default `Ctrl+Shift+S`)  
+9. Click **`[ SAVE_SETTINGS ]`**
 
 ### 4. Use on a quiz
 
 1. Open a Moodle quiz attempt that uses standard question markup  
-2. Wait a few seconds after the question appears  
+2. **Automatic mode:** wait a few seconds after the question appears  
+   **Manual mode:** press your solve hotkey (default `Ctrl+Shift+S`)  
 3. Look under the options for the faint gray answer  
 4. Press **`"`** to hide or show it  
+5. The solve hotkey also **re-solves** the current question in either mode 
 
 ### 5. Local test page (optional)
 

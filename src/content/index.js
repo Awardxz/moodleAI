@@ -1,14 +1,28 @@
 /**
  * moodleAI content script
- * Polls Moodle quiz pages, captures question context (text + image),
- * calls the configured AI provider, and shows a near-invisible answer.
+ * Detects Moodle questions and solves via AI either:
+ *  - auto mode (default): poll for new questions
+ *  - manual mode: only when the configured solve hotkey is pressed
  */
 
 import { getSettings, onSettingsChanged } from '../shared/storage.js';
 import { supportsVision } from '../shared/providers.js';
+import {
+  DEFAULT_SOLVE_HOTKEY,
+  eventMatchesHotkey,
+  formatHotkey,
+  normalizeHotkey,
+} from '../shared/hotkeys.js';
 import { findQuestionElements, parseQuestion, buildUserPrompt } from './question.js';
 import { captureQuestionImage } from './capture.js';
 import { hasProcessedAnswer, clearAnswer, showAnswer, showStatus } from './display.js';
+
+const POLL_MS = 3000;
+
+let settings = null;
+let lastQuestionText = '';
+let inFlight = false;
+let pollTimer = null;
 
 /**
  * Run chat completion in the background page (host permissions, no page CORS).
@@ -35,40 +49,63 @@ function requestChatCompletion(payload) {
   });
 }
 
-const POLL_MS = 3000;
-
-let settings = null;
-let lastQuestionText = '';
-let inFlight = false;
-
-async function init() {
-  settings = await getSettings();
-  console.log('[moodleAI] Loaded settings. Provider:', settings.provider, 'Enabled:', settings.enabled);
-
-  onSettingsChanged((changes) => {
-    const keys = Object.keys(changes);
-    for (const key of keys) {
-      if (changes[key].newValue !== undefined) {
-        settings[key] = changes[key].newValue;
-      }
-    }
-    console.log('[moodleAI] Settings updated');
-  });
-
-  setInterval(tick, POLL_MS);
+function startPolling() {
+  stopPolling();
+  pollTimer = setInterval(() => {
+    solve({ force: false });
+  }, POLL_MS);
 }
 
-async function tick() {
+function stopPolling() {
+  if (pollTimer != null) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+}
+
+/** Apply auto vs manual mode from current settings. */
+function applySolveMode() {
+  if (!settings?.enabled) {
+    stopPolling();
+    return;
+  }
+
+  if (settings.solveMode === 'manual') {
+    stopPolling();
+    console.log(
+      '[moodleAI] Manual mode — press',
+      formatHotkey(settings.solveHotkey),
+      'to solve'
+    );
+  } else {
+    startPolling();
+    console.log('[moodleAI] Auto mode — polling for questions');
+  }
+}
+
+/**
+ * @param {{ force?: boolean }} opts
+ * force=true: hotkey / re-solve (ignore prior answer for this question)
+ */
+async function solve({ force = false } = {}) {
   if (!settings?.enabled) return;
   if (inFlight) return;
 
   const els = findQuestionElements();
-  if (!els) return;
-  if (hasProcessedAnswer()) return;
+  if (!els) {
+    if (force) {
+      console.log('[moodleAI] Solve hotkey pressed but no Moodle question found');
+    }
+    return;
+  }
 
   const parsed = parseQuestion(els);
   if (!parsed.questionText) return;
-  if (parsed.questionText === lastQuestionText) return;
+
+  if (!force) {
+    if (hasProcessedAnswer()) return;
+    if (parsed.questionText === lastQuestionText) return;
+  }
 
   inFlight = true;
   lastQuestionText = parsed.questionText;
@@ -82,7 +119,12 @@ async function tick() {
       return;
     }
 
-    console.log('[moodleAI] Question detected:', parsed.questionText.slice(0, 120));
+    console.log(
+      '[moodleAI] Solving',
+      force ? '(manual/hotkey)' : '(auto)',
+      ':',
+      parsed.questionText.slice(0, 120)
+    );
 
     let imageDataUrl = null;
     const needsImage = Boolean(parsed.img);
@@ -119,6 +161,52 @@ async function tick() {
   } finally {
     inFlight = false;
   }
+}
+
+function onKeyDown(e) {
+  if (!settings?.enabled) return;
+
+  // Answer visibility toggle stays on " (handled in display.js)
+  if (eventMatchesHotkey(e, settings.solveHotkey || DEFAULT_SOLVE_HOTKEY)) {
+    e.preventDefault();
+    e.stopPropagation();
+    solve({ force: true });
+  }
+}
+
+async function init() {
+  settings = await getSettings();
+  console.log(
+    '[moodleAI] Loaded. Provider:',
+    settings.provider,
+    'Mode:',
+    settings.solveMode,
+    'Hotkey:',
+    formatHotkey(settings.solveHotkey),
+    'Enabled:',
+    settings.enabled
+  );
+
+  onSettingsChanged((changes) => {
+    const keys = Object.keys(changes);
+    for (const key of keys) {
+      if (changes[key].newValue !== undefined) {
+        if (key === 'solveHotkey') {
+          settings.solveHotkey = normalizeHotkey(changes[key].newValue);
+        } else {
+          settings[key] = changes[key].newValue;
+        }
+      }
+    }
+
+    if (keys.includes('solveMode') || keys.includes('enabled')) {
+      applySolveMode();
+    }
+    console.log('[moodleAI] Settings updated');
+  });
+
+  window.addEventListener('keydown', onKeyDown, true);
+  applySolveMode();
 }
 
 init();

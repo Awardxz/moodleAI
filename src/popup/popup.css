@@ -578,6 +578,35 @@ textarea {
   gap: 10px;
 }
 
+.hotkey-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.hotkey-row input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  cursor: default;
+}
+
+.hotkey-row input.recording {
+  border-color: var(--white);
+  color: var(--muted);
+  box-shadow:
+    inset 2px 2px 0 rgba(0, 0, 0, 0.65),
+    0 0 12px rgba(255, 255, 255, 0.12);
+}
+
+.hotkey-record.recording {
+  color: var(--white);
+  border-color: var(--white);
+  animation: pulse-dot 1s steps(2) infinite;
+}
+
 .key-wrap {
   position: relative;
 }

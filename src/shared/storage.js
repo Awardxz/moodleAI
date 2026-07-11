@@ -4,6 +4,7 @@
 
 import { DEFAULT_PROMPTS } from './prompts.js';
 import { getProvider } from './providers.js';
+import { DEFAULT_SOLVE_HOTKEY, normalizeHotkey } from './hotkeys.js';
 
 export const STORAGE_KEYS = {
   provider: 'provider',
@@ -13,7 +14,11 @@ export const STORAGE_KEYS = {
   subject: 'subject',
   customPrompt: 'customPrompt',
   enabled: 'enabled',
+  solveMode: 'solveMode',
+  solveHotkey: 'solveHotkey',
 };
+
+/** @typedef {'auto'|'manual'} SolveMode */
 
 const DEFAULTS = {
   provider: 'groq',
@@ -23,6 +28,8 @@ const DEFAULTS = {
   subject: 'Unified',
   customPrompt: DEFAULT_PROMPTS.Unified,
   enabled: true,
+  solveMode: 'auto',
+  solveHotkey: { ...DEFAULT_SOLVE_HOTKEY },
 };
 
 /**
@@ -31,13 +38,17 @@ const DEFAULTS = {
 export function getSettings() {
   return new Promise((resolve) => {
     if (typeof chrome === 'undefined' || !chrome.storage?.local) {
-      resolve({ ...DEFAULTS });
+      resolve({
+        ...DEFAULTS,
+        solveHotkey: { ...DEFAULT_SOLVE_HOTKEY },
+      });
       return;
     }
 
     chrome.storage.local.get(Object.values(STORAGE_KEYS), (result) => {
       const providerId = result.provider || DEFAULTS.provider;
       const provider = getProvider(providerId);
+      const solveMode = result.solveMode === 'manual' ? 'manual' : 'auto';
 
       resolve({
         provider: providerId,
@@ -50,6 +61,8 @@ export function getSettings() {
             ? result.customPrompt
             : DEFAULT_PROMPTS[result.subject || DEFAULTS.subject] || DEFAULTS.customPrompt,
         enabled: result.enabled !== false,
+        solveMode,
+        solveHotkey: normalizeHotkey(result.solveHotkey),
       });
     });
   });
