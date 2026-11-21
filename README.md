@@ -37,7 +37,7 @@ If you want to try moodleAI **without paid API bills**, use **[Groq](https://con
 2. Generate an API key under **API Keys**
 3. In the extension popup, set **Provider → Groq**, paste the key, and save
 
-Groq offers a **generous free tier** with fast inference. For questions that include images, pick a **vision-capable** model in the popup (e.g. Llama 4 Scout). Rate limits and model availability depend on Groq’s current free-tier policy — check their console for the latest limits.
+Groq offers a **generous free tier** with fast inference. For questions that include images, select `qwen/qwen3.8-27b` under **Vision** in the popup. Rate limits and model availability depend on Groq’s current free-tier policy — check their console for the latest limits.
 
 | Goal | Suggested setup |
 |------|-----------------|
